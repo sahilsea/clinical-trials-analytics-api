@@ -1,0 +1,43 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: trials
+      POSTGRES_PASSWORD: trials
+      POSTGRES_DB: trials
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U trials -d trials"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build: .
+    environment:
+      DATABASE_URL: postgresql+psycopg://trials:trials@db:5432/trials
+      API_KEY: ${API_KEY:-change-me}
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # One-off job: docker compose run --rm etl
+  etl:
+    build: .
+    profiles: ["etl"]
+    environment:
+      DATABASE_URL: postgresql+psycopg://trials:trials@db:5432/trials
+    volumes:
+      - ./data:/app/data:ro
+    command: ["python", "-m", "etl.pipeline", "data/COVID_clinical_trials.csv"]
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:

@@ -1,0 +1,15 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.egg-info/
+.env
+*.db
+rejects.csv
+.ipynb_checkpoints/
+.DS_Store
+# The dataset is downloaded separately (see README)
+data/*.csv
